@@ -21,7 +21,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) =>{
   // insertOne (insert a new document(records)) takes 2 arguments - 1st is an object, 2nd one is the callback function
   // which the action fail or not
   db.collection('Todos').insertOne( {
-    text: 'Baking a cake',
+    text: 'Eat lunch',
     completed: false
   }, (err, result) => {
     if (err) {
@@ -33,9 +33,9 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, client) =>{
 
 
   db.collection('Users').insertOne( {
-    name: 'Elise',
-    age: 35,
-    location: 'Toronto'
+    name: 'Paul',
+    age: 25,
+    location: 'Calargy'
   }, (err, result) => {
     if (err) {
       return console.log('Unable to insert User', err);
