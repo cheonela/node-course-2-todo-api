@@ -1,8 +1,8 @@
 const expect = require('expect');     // for assertions
 const request = require('supertest'); // to test our express routes
 
-var {app} = require('./../server');
-var {Todo} = require('./../models/todo');
+const {app} = require('./../server');
+const {Todo} = require('./../models/todo');
 
 // we need to have this, before the testing start, it is a testing lifecycle method
 // the code will be run before every single test
@@ -59,8 +59,5 @@ describe('POST /todos', () => {
           done();
         }).catch((e) => done(e));     // if these 2 check failed, then pass to done
       });
-
   });
-
-
 });

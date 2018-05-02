@@ -10,6 +10,4 @@ var Users = mongoose.model('Users', {
   }
 });
 
-module.exports = {
-  Users
-}
+module.exports = {Users};
