@@ -4,12 +4,20 @@ const request = require('supertest'); // to test our express routes
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
+const todos = [{
+  text: 'First test todo'
+}, {
+  text: 'Second test todo'
+}];
+
 // we need to have this, before the testing start, it is a testing lifecycle method
 // the code will be run before every single test
 // for this case, we need to make sure the db is empty, because the below checking assume there is no data in the db
-beforeEach((done) => {
-  Todo.remove({}).then(() => done());
-});
+// beforeEach((done) => {
+//   Todo.remove({}).then(() => {
+//     return Todo.insertMany(todos); // in order to test the get, we insert some dummy records
+//   }).then(() => done());
+// });
 
 // use describe to group all the routes
 describe('POST /todos', () => {
@@ -32,8 +40,8 @@ describe('POST /todos', () => {
           return done(err);  // it will stop this function running, so it will not run the coding below
         }
 
-        // now fetch the db, and see if this enry has been added
-        Todo.find().then((todos) => {
+        // now fetch the db, and see if this entry has been added, check if the text matched with what we tested
+        Todo.find({text}).then((todos) => {
           expect(todos.length).toBe(1);
           expect(todos[0].text).toBe(text);
           done();
@@ -55,9 +63,23 @@ describe('POST /todos', () => {
 
         // now fetch the db, and see if this enry has been added
         Todo.find().then((todos) => {
-          expect(todos.length).toBe(0);
+          expect(todos.length).toBe(3);
           done();
         }).catch((e) => done(e));     // if these 2 check failed, then pass to done
       });
   });
+});
+
+
+describe('GET /todos', () => {
+  it('should get all todos', (done) => {
+    request(app)
+    .get('/todos')
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todos.length).toBe(3);
+    })
+    .end(done);
+  });
+
 });
