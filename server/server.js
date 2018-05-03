@@ -1,6 +1,8 @@
 //library imports
 var express = require('express');
 var bodyParser = require('body-parser');  // send the json to the server
+const {ObjectID} = require('mongodb');
+
 
 //local imports - get the variable
 var {mongoose} = require('./db/mongoose');
@@ -43,7 +45,24 @@ app.get('/todos', (req, res) => {
   });
 });
 
+// Get /todos passing the ID from URL
+app.get('/todos/:id', (req, res) => {
+  var id = req.params.id;   // this is get the parameters from the URL, it has the field name, and value
 
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Todo.findById(id).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo}); // send back the todo object
+  }).catch((e) => {
+    res.status(400).send();
+  })
+});
 
 // It is used to bind the applicatiion to the port
 app.listen(3000, () => {
