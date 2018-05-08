@@ -10,6 +10,7 @@ var {Todo} = require('./models/todo');
 var {Users} = require('./models/users');
 
 var app = express();
+const port = process.env.PORT || 3000;
 
 // need to have the middleware
 app.use(bodyParser.json());
@@ -65,8 +66,8 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // It is used to bind the applicatiion to the port
-app.listen(3000, () => {
-  console.log('Started on port 3000');
+app.listen(port, () => {
+  console.log(`Started on port ${port}`);
 });
 
 

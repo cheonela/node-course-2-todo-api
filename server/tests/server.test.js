@@ -1,23 +1,31 @@
 const expect = require('expect');     // for assertions
 const request = require('supertest'); // to test our express routes
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 const todos = [{
+  _id: new ObjectID(),
   text: 'First test todo'
 }, {
+  _id: new ObjectID(),
   text: 'Second test todo'
 }];
 
 // we need to have this, before the testing start, it is a testing lifecycle method
 // the code will be run before every single test
 // for this case, we need to make sure the db is empty, because the below checking assume there is no data in the db
-// beforeEach((done) => {
-//   Todo.remove({}).then(() => {
-//     return Todo.insertMany(todos); // in order to test the get, we insert some dummy records
-//   }).then(() => done());
-// });
+beforeEach((done) => {
+  Todo.remove({}).then(() => {
+    // in order to test the get, we insert some dummy records
+   return Todo.insertMany(todos, (error, docs) => {
+       if(error){
+           return done(error);
+       }
+   });
+   }).then(() => done());
+});
 
 // use describe to group all the routes
 describe('POST /todos', () => {
@@ -63,7 +71,7 @@ describe('POST /todos', () => {
 
         // now fetch the db, and see if this enry has been added
         Todo.find().then((todos) => {
-          expect(todos.length).toBe(3);
+          expect(todos.length).toBe(2);
           done();
         }).catch((e) => done(e));     // if these 2 check failed, then pass to done
       });
@@ -77,9 +85,52 @@ describe('GET /todos', () => {
     .get('/todos')
     .expect(200)
     .expect((res) => {
-      expect(res.body.todos.length).toBe(3);
+      expect(res.body.todos.length).toBe(2);
     })
     .end(done);
   });
 
+});
+
+
+describe('GET /todos/:id', () => {
+  it('should get todos using correct ID', (done) => {
+
+    request(app)
+    // trying to use ID the 1st element in the array, as ID is an object, we need to convert this to
+    // string in order to put in the URL string
+    .get(`/todos/${todos[0]._id.toHexString()}`)
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todo.text).toBe(todos[0].text);  // check the text if match
+    })
+    .end(done);
+  });
+
+
+  // check if valid  ID
+  it('should get 404 using invalid ID', (done) => {
+    var id = "5aeb0cd4cf6bbe2ad0620a2";
+    request(app)
+    // trying to use ID the 1st element in the array, as ID is an object, we need to convert this to
+    // string in order to put in the URL string
+    .get(`/todos/${id}`)
+    .expect(404)
+    .end(done);
+
+  });
+
+  // check if ID not found
+  it('should get 404 using ID not found', (done) => {
+    var hexid = new ObjectID().toHexString();
+
+    request(app)
+    // trying to use ID the 1st element in the array, as ID is an object, we need to convert this to
+    // string in order to put in the URL string
+  //  .get(`/todos/${todos[0]._id.toHexString()}`)
+    .get(`/todos/${hexid}`)
+    .expect(404)
+    .end(done);
+
+  });
 });
