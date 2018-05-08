@@ -9,6 +9,7 @@ let db = {
   mlab: 'mongodb://dbtest:lesson80@ds217360.mlab.com:17360/todoapp'
 }
 mongoose.connect(db.mlab || db.localhost);
+//mongoose.connect(db.localhost);
 
 // We need to export the mongoose
 module.exports = {mongoose}

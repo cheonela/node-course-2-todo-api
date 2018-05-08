@@ -11,6 +11,7 @@ var {Users} = require('./models/users');
 
 var app = express();
 const port = process.env.PORT || 3000;
+//const port = 3000;
 
 // need to have the middleware
 app.use(bodyParser.json());
@@ -64,6 +65,29 @@ app.get('/todos/:id', (req, res) => {
     res.status(400).send();
   })
 });
+
+// To delete a record
+app.delete('/todos/:id', (req, res) => {
+  var id = req.params.id;   // this is get the parameters from the URL, it has the field name, and value
+
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Todo.findByIdAndRemove(id).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo}); // send back the todo object
+  }).catch((e) => {
+    res.status(400).send();
+  })
+
+});
+
+
+
 
 // It is used to bind the applicatiion to the port
 app.listen(port, () => {
