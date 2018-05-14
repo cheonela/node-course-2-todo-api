@@ -1,6 +1,7 @@
 //library imports
-var express = require('express');
-var bodyParser = require('body-parser');  // send the json to the server
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');  // send the json to the server
 const {ObjectID} = require('mongodb');
 
 
@@ -10,8 +11,8 @@ var {Todo} = require('./models/todo');
 var {Users} = require('./models/users');
 
 var app = express();
-const port = process.env.PORT || 3000;
-//const port = 3000;
+//const port = process.env.PORT || 3000;
+const port = 3000;
 
 // need to have the middleware
 app.use(bodyParser.json());
@@ -86,6 +87,41 @@ app.delete('/todos/:id', (req, res) => {
 
 });
 
+
+// Update
+app.patch('/todos/:id', (req, res) =>{
+  var id = req.params.id;
+
+  // now get the body that we want to update. We use the pick method will get the properties that allow to update,
+  // in this example, we only allow the user to change the text, and completd flag, the completed at will only
+  // allow to update by the program
+  // so if text property exists, then it will pull off to body
+  var body = _.pick(req.body, ['text', 'completed']);
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  if (_.isBoolean(body.completed) && body.completed) {
+
+    body.completedAt = new Date().getTime();
+  } else {
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  // new: is return the updated object
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+    res.send({todo}); // send back the todo object
+  }).catch((e) => {
+    res.status(400).send();
+  })
+
+
+});
 
 
 
