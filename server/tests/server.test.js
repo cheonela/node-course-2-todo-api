@@ -10,7 +10,9 @@ const todos = [{
   text: 'First test todo'
 }, {
   _id: new ObjectID(),
-  text: 'Second test todo'
+  text: 'Second test todo',
+  completed: true,
+  completedAt: 333
 }];
 
 // we need to have this, before the testing start, it is a testing lifecycle method
@@ -179,4 +181,59 @@ describe('DELETE /todos/:id', () => {
     .end(done);
   });
 
+});
+
+
+describe('PATCH /todos/:id', () => {
+  it('should update a todo', (done) => {
+      var hexid = todos[0]._id.toHexString();
+      var text = 'Test case 1';
+
+
+      request(app)
+      .patch(`/todos/${hexid}`)
+      .send({
+        completed: true,
+        text
+      })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(typeof res.body.todo.completedAt).toBe('number');
+      })
+
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+      done();
+      });
+
+  });
+
+  it('should clear the 2nd todo', (done) => {
+    var hexid = todos[1]._id.toHexString();
+    var text = 'Test case 2';
+
+
+    request(app)
+    .patch(`/todos/${hexid}`)
+    .send({
+      completed: false,
+      text
+    })
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todo.text).toBe(text);
+      expect(res.body.todo.completed).toBe(false);
+      expect(res.body.todo.completedAt).toBeFalsy();
+    })
+    .end((err, res) => {
+      if (err) {
+        return done(err);
+      }
+    done();
+    });
+  });
 });
