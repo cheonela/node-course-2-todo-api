@@ -1,3 +1,6 @@
+// This config file contains how to setup the envoriment
+require('./config/config.js');
+
 //library imports
 const _ = require('lodash');
 const express = require('express');
@@ -11,8 +14,8 @@ var {Todo} = require('./models/todo');
 var {Users} = require('./models/users');
 
 var app = express();
-const port = process.env.PORT || 3000;
-//const port = 3000;
+const port = process.env.PORT;
+
 
 // need to have the middleware
 app.use(bodyParser.json());
