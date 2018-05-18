@@ -11,7 +11,7 @@ const {ObjectID} = require('mongodb');
 //local imports - get the variable
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
-var {Users} = require('./models/users');
+var {User} = require('./models/user');
 
 var app = express();
 const port = process.env.PORT;
@@ -125,6 +125,32 @@ app.patch('/todos/:id', (req, res) =>{
 
 
 });
+
+// POST /users
+app.post('/users', (req, res) => {
+  console.log(req.body);  // the body store in the bodyParser
+
+  // Only take the email, and password, as the token is not allow the user to maintain
+  var body = _.pick(req.body, ['email', 'password']);
+
+  // create the instance mongoose model
+  var user = new User(body);
+
+  // it is save to the db
+  user.save().then(() => {
+    // then we will send the doc callback
+    // We use this method to save the user
+    return user.generateAuthToken();
+  }).then((token) => {
+    // we need to send back the header for the HTTP response header
+    // header takes 2 arguements: one is the header name, and value for the header name
+    // if starts with x-, it is a custom header
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+    res.status(400).send(e);
+  })
+});
+
 
 
 
