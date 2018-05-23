@@ -2,6 +2,7 @@ const validator = require('validator');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 
 // store the schema for the user, all the properties
@@ -86,7 +87,7 @@ UserSchema.statics.findByToken = function (token) {
     // return new Promise((resolve, reject) => {
     //   reject();
     // });
-    return Promise.reject(); // this is doing the same thing as above, but in simple way. 
+    return Promise.reject(); // this is doing the same thing as above, but in simple way.
 
   }
 
@@ -100,6 +101,36 @@ UserSchema.statics.findByToken = function (token) {
   });
 
 };
+
+// Mongoose has the pre middleware, for example, before an update, we can run some code before we update the model
+// like this case, we want to run the code to make sure the hashed password in place
+// this is for before 'save' event - before save to database
+//the 2nd is the function, as we need access to "this", we need to have the "next" arguments, and have to
+// call in somewhre inside this function, otherwise, program will crash
+UserSchema.pre('save', function(next) {
+  var user = this;
+
+  // we check if password was modified - there is a case that the user only changed the email address, but not
+  // the password, then in this case the hashed password get hashed again.
+  // This is not what we want, we only want to hash the plain text password
+  if (user.isModified('password')) {
+    //to hash the password
+    // generate the "salt", take 2 argruments, 1st: # of rounds, higher number, take longer time to generate
+    // 2nd: callback function
+    bcrypt.genSalt(10, (err, salt) => {
+      // takes 3 arguments: 1st, the string wants to hash, 2nd: salt, 3rd: call back function
+      bcrypt.hash(user.password, salt, (err, hash) => {
+        user.password = hash;
+        next();
+      });
+    });
+
+
+  } else {        // if password not change, then just skip
+    next();
+  }
+})
+
 
 var User = mongoose.model('User', UserSchema);
 
