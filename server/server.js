@@ -12,6 +12,7 @@ const {ObjectID} = require('mongodb');
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
@@ -127,6 +128,8 @@ app.patch('/todos/:id', (req, res) =>{
 });
 
 // POST /users
+// this will be a public route, so the people can signin, however, the other routes will be private. Only
+// can access if signon successfully
 app.post('/users', (req, res) => {
   console.log(req.body);  // the body store in the bodyParser
 
@@ -149,6 +152,14 @@ app.post('/users', (req, res) => {
   }).catch((e) => {
     res.status(400).send(e);
   })
+});
+
+
+
+// this is just a simple private page to show the user information after successfully signon
+// we reference the middleware
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 

@@ -54,6 +54,7 @@ UserSchema.methods.toJSON = function() {
 
 
 // As we need to use "This", so we create the function (not arrow fnction - as it is not allow to use "this")
+// this is a instance methoso will be used by the each user object
 UserSchema.methods.generateAuthToken =  function () {
   var user = this;
   var access = 'auth';
@@ -71,7 +72,34 @@ UserSchema.methods.generateAuthToken =  function () {
   });
 };
 
+// this is a model object (by adding statics) - will be used by User
+UserSchema.statics.findByToken = function (token) {
 
+  var User = this;
+  var decoded;
+
+  // as the jwt.verify will fire exception if token not match, so we need to use try
+  try {
+    decoded = jwt.verify(token, 'secret');
+  } catch (e) {
+    // if fail, it return a promise to reject
+    // return new Promise((resolve, reject) => {
+    //   reject();
+    // });
+    return Promise.reject(); // this is doing the same thing as above, but in simple way. 
+
+  }
+
+  // if successfully decoded the token, then we return the user
+  return User.findOne({
+    _id: decoded._id,
+    // we need to find a user whoses tokens array has an this token
+    // to query nested document, we need to wrap it with quotes
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+
+};
 
 var User = mongoose.model('User', UserSchema);
 
