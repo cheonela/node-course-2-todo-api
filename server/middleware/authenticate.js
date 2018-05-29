@@ -15,8 +15,6 @@ var authenticate = (req, res, next) => {
       return Promise.reject();
     }
 
-
-
     // we will modified the request object inside of the route down below
     req.user = user;
     req.token = token;

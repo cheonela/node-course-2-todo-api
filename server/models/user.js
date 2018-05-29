@@ -55,7 +55,7 @@ UserSchema.methods.toJSON = function() {
 
 
 // As we need to use "This", so we create the function (not arrow fnction - as it is not allow to use "this")
-// this is a instance methoso will be used by the each user object
+// this is a instance method so will be used by the each user object
 UserSchema.methods.generateAuthToken =  function () {
   var user = this;
   var access = 'auth';
