@@ -25,13 +25,13 @@ app.use(bodyParser.json());
 // configuring the routes (post route), when we doing the db update, we will use the post HTTP method, and send the Json
 // object to the server, then create the new model, and send the complete model with ID, and back to client
 // app.post passing 2 arguments, 1st URL, 2nd: call back function, and the callback has 2 arguments, request, response
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
   console.log(req.body);  // the body store in the bodyParser
 
   // create the instance mongoose model
   var todo = new Todo({
-    text: req.body.text
-
+    text: req.body.text,
+    _creator: req.user._id
   });
 
   // it is save to the db
@@ -44,8 +44,10 @@ app.post('/todos', (req, res) => {
 
 });
 
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id
+  }).then((todos) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
@@ -53,7 +55,7 @@ app.get('/todos', (req, res) => {
 });
 
 // Get /todos passing the ID from URL
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;   // this is get the parameters from the URL, it has the field name, and value
 
 
@@ -61,7 +63,10 @@ app.get('/todos/:id', (req, res) => {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -72,7 +77,7 @@ app.get('/todos/:id', (req, res) => {
 });
 
 // To delete a record
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   var id = req.params.id;   // this is get the parameters from the URL, it has the field name, and value
 
 
@@ -80,7 +85,10 @@ app.delete('/todos/:id', (req, res) => {
     return res.status(404).send();
   }
 
-  Todo.findByIdAndRemove(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }
@@ -93,7 +101,7 @@ app.delete('/todos/:id', (req, res) => {
 
 
 // Update
-app.patch('/todos/:id', (req, res) =>{
+app.patch('/todos/:id', authenticate, (req, res) =>{
   var id = req.params.id;
 
   // now get the body that we want to update. We use the pick method will get the properties that allow to update,
@@ -115,7 +123,10 @@ app.patch('/todos/:id', (req, res) =>{
   }
 
   // new: is return the updated object
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new: true}).then((todo) => {
     if (!todo) {
       return res.status(404).send();
     }

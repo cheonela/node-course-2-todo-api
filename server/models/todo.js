@@ -21,6 +21,13 @@ var Todo = mongoose.model('Todo', {
   completedAt: {
     type: Number,
     default: null
+  },
+  // this field stores the user ID that create this record. So, only that user can maintain that records
+  // the field name can be any, but the reason why we put the underscore, just want to represent This
+  // field store the id.
+  _creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
   }
 });
 
