@@ -6,7 +6,7 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');  // send the json to the server
 const {ObjectID} = require('mongodb');
-
+const bcrypt = require('bcryptjs');
 
 //local imports - get the variable
 var {mongoose} = require('./db/mongoose');
@@ -155,6 +155,34 @@ app.post('/users', (req, res) => {
 });
 
 
+// This is the login page
+app.post('/users/login', (req, res) => {
+  console.log(req.body);  // the body store in the bodyParser
+
+  // Only take the email, and password, as the token is not allow the user to maintain
+  var body = _.pick(req.body, ['email', 'password']);
+
+  User.findByCredentials(body.email, body.password).then((user) =>{
+      // When successfully login, now generate the auth token.
+      return user.generateAuthToken().then((token) => {
+      // we need to send back the header for the HTTP response header
+      // header takes 2 arguements: one is the header name, and value for the header name
+      // if starts with x-, it is a custom header
+      res.header('x-auth', token).send(user);
+    });
+  }).catch((e) => {
+      res.status(400).send();
+  });
+});
+
+// This is used to remove the token when logout the session
+app.delete('/users/me/token', authenticate, (req, res) => {
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send();
+  }, () => {
+    res.status(400).send();
+  });
+});
 
 // this is just a simple private page to show the user information after successfully signon
 // we reference the middleware

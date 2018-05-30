@@ -73,6 +73,20 @@ UserSchema.methods.generateAuthToken =  function () {
   });
 };
 
+
+// This is the method used to remove the token when logout
+UserSchema.methods.removeToken =  function (token) {
+  var user = this;
+
+// $pull is used to remove items from an array that match the criteria
+// if match, then it will remove the whole object
+  return user.update({
+    $pull: {
+      tokens: {token}
+    }
+  });
+};
+
 // this is a model object (by adding statics) - will be used by User
 UserSchema.statics.findByToken = function (token) {
 
@@ -101,6 +115,49 @@ UserSchema.statics.findByToken = function (token) {
   });
 
 };
+
+// This is use to check the login, if entering the valid email and Password
+UserSchema.statics.findByCredentials = function (email, password) {
+
+  var User = this;
+
+  return User.findOne({email: email}).then((user) => {
+    if (!user) {
+      return Promise.reject();
+    }
+
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) {
+          resolve(user);
+        } else {
+          reject();
+        }
+
+      });
+    });
+
+
+
+
+
+    bcrypt.genSalt(10, (err, salt) => {
+      // takes 3 arguments: 1st, the string wants to hash, 2nd: salt, 3rd: call back function
+      bcrypt.hash(password, salt, (err, hash) => {
+        password = hash;
+      });
+    });
+
+    if (password !== user.password) {
+      return res.status(400).send();
+    }
+    res.send({user}); // send back the users object
+  }).catch((e) => {
+    res.status(400).send();
+  })
+
+};
+
 
 // Mongoose has the pre middleware, for example, before an update, we can run some code before we update the model
 // like this case, we want to run the code to make sure the hashed password in place
